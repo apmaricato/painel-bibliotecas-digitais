@@ -33,7 +33,7 @@
 // =============================================================================
 
 const CONFIG = {
-  ABA_RESPOSTAS:      "Matriz",
+  ABA_RESPOSTAS:      "Respostas do formulário 1",
   ABA_ALIASES_BIBLIO: "Aliases Bibliotecas",
   ABA_ALIASES_INST:   "Aliases Instituições",
   ABA_DADOS_LIMPOS:   "Dados Limpos",
