@@ -8,9 +8,15 @@
   <meta property="og:title" content="Painel Nacional de Bibliotecas Digitais" />
   <meta property="og:description" content="Mapeamento nacional das bibliotecas digitais assinadas por IES brasileiras." />
   <meta property="og:type" content="website" />
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS (Mapa) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
   <style>
     /* ===================== RESET & BASE ===================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,7 +56,7 @@
 
     /* ===================== NAV ===================== */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
       background: rgba(13, 27, 42, 0.85);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
@@ -86,13 +92,12 @@
 
     /* ===================== HERO ===================== */
     .hero {
-      min-height: 100vh;
+      min-height: 90vh;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 120px 24px 80px;
+      text-align: center; padding: 120px 24px 60px;
       position: relative; overflow: hidden;
     }
 
-    /* Background gradient blobs */
     .hero::before {
       content: "";
       position: absolute; inset: 0;
@@ -167,37 +172,8 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(0,180,216,0.4); }
 
-    /* ===================== KPI STRIP ===================== */
-    .kpi-strip {
-      margin-top: 72px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px; width: 100%; max-width: 780px;
-      animation: fadeInUp 0.6s 0.4s ease both;
-    }
-    .kpi-card {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 20px; text-align: center;
-      backdrop-filter: blur(12px);
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .kpi-card:hover { border-color: rgba(0,180,216,0.4); transform: translateY(-3px); }
-    .kpi-number {
-      font-size: 2.4rem; font-weight: 800;
-      background: linear-gradient(135deg, var(--teal-soft), var(--green));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; line-height: 1;
-    }
-    .kpi-label { font-size: 0.8rem; color: var(--muted); margin-top: 6px; font-weight: 500; }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
     /* ===================== SECTIONS ===================== */
-    section { padding: 96px 0; }
+    section { padding: 90px 0; }
     section:nth-child(even) { background: var(--navy-mid); }
 
     .section-label {
@@ -215,6 +191,286 @@
       background-clip: text;
     }
     .section-desc { color: var(--muted); max-width: 560px; margin-top: 16px; line-height: 1.7; }
+
+    /* ===================== DASHBOARD LAYOUT ===================== */
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+      margin-top: 36px;
+    }
+
+    .card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    /* KPI Cards */
+    .kpi-row {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .kpi-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      text-align: center;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); border-color: rgba(0,180,216,0.35); }
+    .kpi-num {
+      font-size: 2.8rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--teal-soft), var(--green));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+    }
+    .kpi-title { font-size: 0.85rem; color: var(--muted); margin-top: 8px; font-weight: 500; }
+
+    /* Filters Card */
+    .filters-card {
+      grid-column: span 12;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+      background: rgba(27, 46, 68, 0.4);
+    }
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .filter-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--teal-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .filter-control {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .filter-control:focus { border-color: var(--teal); }
+
+    /* Main Chart columns */
+    .chart-col-lg { grid-column: span 8; }
+    .chart-col-sm { grid-column: span 4; }
+    .chart-col-full { grid-column: span 12; }
+
+    @media (max-width: 992px) {
+      .chart-col-lg, .chart-col-sm { grid-column: span 12; }
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Map Box styling */
+    #map {
+      height: 420px;
+      border-radius: var(--radius-sm);
+      background: #0f1c2c;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Leaflet popup styling override to match theme */
+    .leaflet-popup-content-wrapper {
+      background: var(--navy-card) !important;
+      color: var(--white) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-sm) !important;
+    }
+    .leaflet-popup-tip { background: var(--navy-card) !important; }
+
+    /* Table styling */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+    th {
+      background: rgba(255,255,255,0.03);
+      color: var(--teal-soft);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--muted);
+    }
+    tr:hover td {
+      color: var(--white);
+      background: rgba(255,255,255,0.01);
+    }
+
+    /* Table controls */
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .table-search {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      width: 260px;
+    }
+    .table-search:focus { border-color: var(--teal); outline: none; }
+
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .page-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    .page-btn:hover:not(:disabled) { background: rgba(0,180,216,0.15); }
+    .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .page-info { font-size: 0.82rem; color: var(--muted); }
+
+    /* Custom select dropdown styling */
+    .multiselect-container {
+      position: relative;
+      width: 100%;
+    }
+    .multiselect-selected {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .multiselect-selected::after {
+      content: "";
+      border: solid var(--muted);
+      border-width: 0 2px 2px 0;
+      display: inline-block;
+      padding: 3px;
+      transform: rotate(45deg);
+      transition: transform 0.2s;
+    }
+    .multiselect-container.open .multiselect-selected::after {
+      transform: rotate(-135deg);
+    }
+    .multiselect-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 8px 0;
+    }
+    .multiselect-container.open .multiselect-dropdown {
+      display: block;
+    }
+    .multiselect-option {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--muted);
+      user-select: none;
+    }
+    .multiselect-option:hover {
+      background: rgba(255,255,255,0.03);
+      color: var(--white);
+    }
+    .multiselect-option input {
+      accent-color: var(--teal);
+      width: 15px; height: 15px;
+    }
+    .multiselect-option.selected {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    /* Loading overlay */
+    .loader-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--navy);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loader-text {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: var(--teal-soft);
+      font-weight: 500;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===================== SOBRE ===================== */
     .about-grid {
@@ -237,7 +493,7 @@
     .about-highlight .ah-title { font-size: 0.8rem; color: var(--teal); font-weight: 600; margin-bottom: 6px; }
     .about-highlight p { color: var(--muted); font-size: 0.9rem; }
 
-    /* ===================== HOW IT WORKS ===================== */
+    /* ===================== TIMELINE ===================== */
     .timeline { margin-top: 48px; display: flex; flex-direction: column; gap: 0; }
     .tl-item {
       display: grid; grid-template-columns: 64px 1fr; gap: 0; align-items: start;
@@ -263,51 +519,6 @@
     .tl-content h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
     .tl-content p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
 
-    /* ===================== DESTAQUES ===================== */
-    .highlights-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px; margin-top: 48px;
-    }
-    .highlight-card {
-      background: var(--navy-card);
-      border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 28px 24px;
-      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-      position: relative; overflow: hidden;
-    }
-    .highlight-card::before {
-      content: "";
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--teal), var(--green));
-    }
-    .highlight-card:hover {
-      border-color: rgba(0,180,216,0.4);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-    .hc-icon { font-size: 1.8rem; margin-bottom: 14px; }
-    .hc-val {
-      font-size: 2rem; font-weight: 800;
-      background: linear-gradient(135deg, var(--teal-soft), var(--green));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; line-height: 1;
-    }
-    .hc-label { font-size: 0.9rem; color: var(--white); font-weight: 600; margin: 8px 0 4px; }
-    .hc-desc  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
-
-    /* ===================== CTA SECTION ===================== */
-    .cta-section {
-      text-align: center; padding: 80px 24px;
-    }
-    .cta-box {
-      background: linear-gradient(135deg, rgba(0,180,216,0.1), rgba(6,214,160,0.06));
-      border: 1px solid rgba(0,180,216,0.25);
-      border-radius: 24px; padding: 60px 40px; max-width: 720px; margin: 0 auto;
-      backdrop-filter: blur(16px);
-    }
-    .cta-box h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 14px; }
-    .cta-box p { color: var(--muted); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; }
-
     /* ===================== FOOTER ===================== */
     footer {
       background: #080f18;
@@ -323,7 +534,6 @@
     .footer-links a:hover { color: var(--teal); }
     .footer-copy { font-size: 0.78rem; color: #3a4f63; margin-top: 24px; }
 
-    /* ===================== SCROLL REVEAL ===================== */
     .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
   </style>
@@ -337,7 +547,6 @@
       <ul class="nav-links" role="list">
         <li><a href="#sobre">Sobre</a></li>
         <li><a href="#como-funciona">Como funciona</a></li>
-        <li><a href="#destaques">Destaques</a></li>
         <li><a href="#painel" class="nav-cta">Acessar Painel</a></li>
       </ul>
     </div>
@@ -347,7 +556,7 @@
   <header class="hero" id="inicio">
     <div class="hero-badge">
       <span class="dot" aria-hidden="true"></span>
-      Dados abertos · Atualizado periodicamente
+      Painel Interativo · Dados em Tempo Real
     </div>
 
     <h1>
@@ -357,41 +566,138 @@
     </h1>
 
     <p class="hero-desc">
-      Um painel colaborativo que reúne quais bibliotecas digitais cada instituição de ensino superior do Brasil assina — transparência para toda a comunidade acadêmica.
+      Um painel interativo e colaborativo que reúne quais bibliotecas digitais cada instituição de ensino superior do Brasil assina — transparência para toda a comunidade acadêmica.
     </p>
 
     <div class="hero-actions">
-      <a href="COLE_AQUI_O_LINK_DO_LOOKER_STUDIO" id="btn-acessar-painel"
-         class="btn-primary" target="_blank" rel="noopener">
+      <a href="#painel" class="btn-primary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Acessar o Painel
+        Ver Painel de Dados
       </a>
       <a href="#sobre" class="btn-secondary">
         Saiba mais
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </a>
     </div>
+  </header>
 
-    <!-- KPIs -->
-    <div class="kpi-strip" aria-label="Números do projeto">
-      <div class="kpi-card">
-        <div class="kpi-number" data-target="178">0</div>
-        <div class="kpi-label">Instituições mapeadas</div>
+  <!-- DASHBOARD SECTION -->
+  <section id="painel">
+    <div class="container" style="position: relative;">
+      
+      <!-- LOADER OVERLAY -->
+      <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Carregando dados da planilha...</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-number" data-target="634">0</div>
-        <div class="kpi-label">Assinaturas registradas</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-number" data-target="82">0</div>
-        <div class="kpi-label">Bibliotecas digitais distintas</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-number" data-target="27">0</div>
-        <div class="kpi-label">Estados cobertos</div>
+
+      <div class="section-label">Painel Interativo</div>
+      <h2 class="section-title">Explore as <em>Assinaturas</em></h2>
+      <p class="section-desc">
+        Filtre por tipo de instituição, estado ou biblioteca digital. Clique nos elementos gráficos para cruzar dados.
+      </p>
+
+      <div class="db-grid">
+        
+        <!-- KPIs -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div id="kpi-ies" class="kpi-num">0</div>
+            <div class="kpi-title">Instituições mapeadas</div>
+          </div>
+          <div class="kpi-card">
+            <div id="kpi-signatures" class="kpi-num">0</div>
+            <div class="kpi-title">Assinaturas registradas</div>
+          </div>
+          <div class="kpi-card">
+            <div id="kpi-distinct-libs" class="kpi-num">0</div>
+            <div class="kpi-title">Bibliotecas distintas</div>
+          </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="card filters-card">
+          <!-- Filtro Tipo IES -->
+          <div class="filter-group">
+            <label>Tipo de IES</label>
+            <div class="multiselect-container" id="filter-ies-type-container">
+              <div class="multiselect-selected" id="filter-ies-type-selected">Todos selecionados</div>
+              <div class="multiselect-dropdown" id="filter-ies-type-dropdown"></div>
+            </div>
+          </div>
+
+          <!-- Filtro Biblioteca Digital -->
+          <div class="filter-group">
+            <label>Biblioteca Digital</label>
+            <div class="multiselect-container" id="filter-lib-container">
+              <div class="multiselect-selected" id="filter-lib-selected">Todas selecionadas</div>
+              <div class="multiselect-dropdown" id="filter-lib-dropdown"></div>
+            </div>
+          </div>
+
+          <!-- Filtro Estado (UF) -->
+          <div class="filter-group">
+            <label>Estado / UF</label>
+            <div class="multiselect-container" id="filter-state-container">
+              <div class="multiselect-selected" id="filter-state-selected">Todos selecionados</div>
+              <div class="multiselect-dropdown" id="filter-state-dropdown"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAPA -->
+        <div class="card chart-col-sm">
+          <div class="card-title">🗺️ Assinaturas por Estado</div>
+          <div id="map"></div>
+        </div>
+
+        <!-- RANKING -->
+        <div class="card chart-col-lg">
+          <div class="card-title">🏆 Assinaturas por Biblioteca</div>
+          <div style="position: relative; height: 420px; width: 100%;">
+            <canvas id="chart-ranking"></canvas>
+          </div>
+        </div>
+
+        <!-- TIPO IES CHART -->
+        <div class="card chart-col-sm">
+          <div class="card-title">🏛️ Por Tipo de IES</div>
+          <div style="position: relative; height: 260px; width: 100%; display: flex; align-items: center; justify-content: center;">
+            <canvas id="chart-type" style="max-height: 240px; max-width: 240px;"></canvas>
+          </div>
+        </div>
+
+        <!-- TABELA DETALHADA -->
+        <div class="card chart-col-lg">
+          <div class="card-title">📋 Lista de Assinaturas</div>
+          <div class="table-header">
+            <input type="text" id="table-search" class="table-search" placeholder="Buscar instituição ou biblioteca..." />
+            <div class="page-info" id="table-page-info">Mostrando 0 de 0 registros</div>
+          </div>
+          <div class="table-container">
+            <table id="data-table">
+              <thead>
+                <tr>
+                  <th>Instituição</th>
+                  <th>Tipo IES</th>
+                  <th>Estado</th>
+                  <th>Biblioteca Digital</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- JavaScript insere as linhas aqui -->
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button id="btn-prev" class="page-btn" disabled>Anterior</button>
+            <button id="btn-next" class="page-btn" disabled>Próxima</button>
+          </div>
+        </div>
+
       </div>
     </div>
-  </header>
+  </section>
 
   <!-- SOBRE -->
   <section id="sobre">
@@ -418,11 +724,11 @@
           </div>
           <div class="about-highlight">
             <div class="ah-title">🔄 Atualização</div>
-            <p>Os dados são processados automaticamente a cada nova resposta. Instituições que já responderam podem enviar atualização pelo link personalizado.</p>
+            <p>Os dados são processados automaticamente na aba "Dados Limpos" da planilha. O painel web lê esses dados atualizados em tempo real no carregamento da página.</p>
           </div>
           <div class="about-highlight">
             <div class="ah-title">🔓 Acesso aberto</div>
-            <p>Todos os dados são públicos. Pesquisadores e gestores podem acessar, filtrar e baixar as informações diretamente pelo painel.</p>
+            <p>Todos os dados são públicos. Pesquisadores e gestores podem acessar, filtrar e baixar as informações diretamente pela tabela do painel.</p>
           </div>
         </div>
       </div>
@@ -464,77 +770,9 @@
           <div class="tl-left"><div class="tl-num">4</div><div class="tl-line"></div></div>
           <div class="tl-content">
             <h3>Painel reflete os dados atualizados</h3>
-            <p>O Looker Studio lê os dados limpos diretamente da planilha e atualiza todos os gráficos e filtros automaticamente, em até 15 minutos após nova resposta.</p>
+            <p>Ao abrir ou atualizar esta página, os dados limpos são puxados da planilha diretamente via API e renderizados nos gráficos de forma instantânea.</p>
           </div>
         </div>
-        <div class="tl-item">
-          <div class="tl-left"><div class="tl-num">5</div><div class="tl-line"></div></div>
-          <div class="tl-content">
-            <h3>Qualquer pessoa acessa pelo link público</h3>
-            <p>Sem login, sem instalação. O painel é público e pode ser acessado por qualquer navegador, em computadores e celulares.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DESTAQUES -->
-  <section id="destaques">
-    <div class="container">
-      <div class="section-label reveal">Dados em destaque</div>
-      <h2 class="section-title reveal">O que os números <em>revelam</em></h2>
-      <p class="section-desc reveal">
-        Baseado no snapshot mais recente dos dados coletados. Acesse o painel completo para filtrar por estado, tipo de IES e biblioteca.
-      </p>
-
-      <div class="highlights-grid reveal">
-        <div class="highlight-card">
-          <div class="hc-icon">🏆</div>
-          <div class="hc-val">#1 Minha Biblioteca</div>
-          <div class="hc-label">Biblioteca mais assinada</div>
-          <div class="hc-desc">Presente em 124 das 178 instituições mapeadas — a plataforma de livros digitais mais adotada pelas IES brasileiras.</div>
-        </div>
-        <div class="highlight-card">
-          <div class="hc-icon">🏛️</div>
-          <div class="hc-val">51%</div>
-          <div class="hc-label">Instituições públicas</div>
-          <div class="hc-desc">96 IES públicas vs. 77 privadas entre as respondentes — distribuição equilibrada entre os dois segmentos.</div>
-        </div>
-        <div class="highlight-card">
-          <div class="hc-icon">🗺️</div>
-          <div class="hc-val">SP · MG · SC</div>
-          <div class="hc-label">Estados com mais registros</div>
-          <div class="hc-desc">São Paulo (34), Minas Gerais (24) e Santa Catarina (21) lideram em número de instituições mapeadas.</div>
-        </div>
-        <div class="highlight-card">
-          <div class="hc-icon">📚</div>
-          <div class="hc-val">82</div>
-          <div class="hc-label">Bibliotecas distintas</div>
-          <div class="hc-desc">De JSTOR e IEEE Xplore a vLex e Minha Biblioteca — um ecossistema diverso de conteúdo acadêmico digital no Brasil.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA SECTION -->
-  <section class="cta-section" id="painel">
-    <div class="container">
-      <div class="cta-box reveal">
-        <h2>Explore o Painel Completo</h2>
-        <p>
-          Filtre por estado, tipo de IES ou biblioteca digital. Veja o mapa, o ranking e a tabela completa com todas as instituições mapeadas.
-        </p>
-        <a href="COLE_AQUI_O_LINK_DO_LOOKER_STUDIO" class="btn-primary"
-           target="_blank" rel="noopener" aria-label="Abrir o painel interativo no Looker Studio">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Acessar o Painel Agora
-        </a>
-        <p style="margin-top:20px; font-size:0.82rem; color: var(--muted);">
-          Sua instituição ainda não está no mapa?
-          <a href="COLE_AQUI_O_LINK_DO_FORMULARIO" style="color:var(--teal); text-decoration:none;" target="_blank" rel="noopener">
-            Responda o formulário →
-          </a>
-        </p>
       </div>
     </div>
   </section>
@@ -548,7 +786,7 @@
         Dados coletados colaborativamente, tratados e disponibilizados gratuitamente.
       </p>
       <div class="footer-links">
-        <a href="COLE_AQUI_O_LINK_DO_LOOKER_STUDIO" target="_blank" rel="noopener">Painel de Dados</a>
+        <a href="#painel">Painel de Dados</a>
         <a href="COLE_AQUI_O_LINK_DO_FORMULARIO" target="_blank" rel="noopener">Contribuir com dados</a>
         <a href="mailto:COLE_AQUI_O_EMAIL_DE_CONTATO">Contato</a>
         <a href="#sobre">Metodologia</a>
@@ -560,55 +798,593 @@
     </div>
   </footer>
 
-  <script>
-    // ===================== CONTADOR ANIMADO NOS KPIs =====================
-    function animarContador(el) {
-      const target = parseInt(el.dataset.target, 10);
-      const duration = 1800;
-      const start = performance.now();
-      const easeOut = t => 1 - Math.pow(1 - t, 3);
+  <!-- ===================== JAVASCRIPT / LÓGICA ===================== -->
+  
+  <!-- PapaParse (para ler CSV do Sheets) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
+  <!-- Chart.js (para Gráficos) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-      function step(now) {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        el.textContent = Math.round(easeOut(progress) * target).toLocaleString("pt-BR");
-        if (progress < 1) requestAnimationFrame(step);
+  <!-- Leaflet (para o Mapa) -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+    // =========================================================================
+    // ⚙️ CONFIGURAÇÃO DE FONTES DE DADOS
+    // =========================================================================
+    
+    // Substitua pelo link de exportação CSV da aba "Dados Limpos" do seu Google Sheets publicado
+    // Como gerar: Arquivo > Compartilhar > Publicar na Web > Escolha "Dados Limpos" e formato "Valores separados por vírgulas (.csv)"
+    const CSV_URL = 'COLE_AQUI_O_LINK_DO_CSV';
+
+    // GeoJSON simplificado de estados do Brasil (UFs)
+    const GEOJSON_URL = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson';
+
+    // =========================================================================
+    // VARIÁVEIS GLOBAIS DO DASHBOARD
+    // =========================================================================
+    let rawData = [];         // Dados completos carregados
+    let filteredData = [];    // Dados após aplicação de filtros
+    let brazilGeoJson = null; // Objeto GeoJSON dos estados do Brasil
+    
+    // Dicionários com valores únicos para preenchimento dos filtros
+    let uniqueIesTypes = [];
+    let uniqueLibs = [];
+    let uniqueStates = [];
+
+    // Estado da seleção de filtros
+    let selectedIesTypes = [];
+    let selectedLibs = [];
+    let selectedStates = [];
+
+    // Instâncias do Mapa e Gráficos
+    let map = null;
+    let geojsonLayer = null;
+    let chartRanking = null;
+    let chartType = null;
+
+    // Paginação da tabela
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let searchQuery = '';
+
+    // =========================================================================
+    // INICIALIZAÇÃO E CARREGAMENTO
+    // =========================================================================
+    
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Ativa efeito de fade-in no scroll
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal").forEach(el => revealObserver.observe(el));
+
+      // Carrega dados da planilha e GeoJSON
+      try {
+        await Promise.all([
+          loadDataFromSheets(),
+          loadGeoJson()
+        ]);
+        
+        // Remove tela de loading
+        const loader = document.getElementById('loader');
+        loader.style.opacity = 0;
+        setTimeout(() => loader.style.display = 'none', 400);
+
+        // Inicializa visuais
+        initMap();
+        initCharts();
+        
+        // Renderiza
+        updateDashboard();
+
+      } catch (err) {
+        console.error("Erro no carregamento inicial:", err);
+        document.querySelector('#loader .loader-text').innerHTML = 
+          '❌ Erro ao ler planilha pública.<br/><span style="font-size:0.8rem; font-weight:normal; opacity:0.7;">Verifique se a aba "Dados Limpos" foi publicada como CSV.</span>';
       }
-      requestAnimationFrame(step);
+    });
+
+    // Lê os dados do Google Sheets usando PapaParse
+    async function loadDataFromSheets() {
+      // Se não houver URL configurada, carrega mock para demonstração
+      if (!CSV_URL || CSV_URL.includes('COLE_AQUI_O_LINK_DO_CSV')) {
+        rawData = getMockData();
+        prepareFilters();
+        return;
+      }
+
+      return new Promise((resolve, reject) => {
+        Papa.parse(CSV_URL, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            rawData = results.data.map(row => ({
+              instituicao: row.instituicao || '',
+              tipo_ies: row.tipo_ies || 'Não informado',
+              estado: row.estado || '',
+              uf: row.uf || '',
+              biblioteca_digital: row.biblioteca_digital || '',
+              email_contato: row.email_contato || '',
+              site_biblioteca: row.site_biblioteca || '',
+              data_resposta: row.data_resposta || ''
+            })).filter(row => row.instituicao && row.biblioteca_digital);
+            
+            prepareFilters();
+            resolve();
+          },
+          error: function(err) {
+            reject(err);
+          }
+        });
+      });
     }
 
-    // ===================== SCROLL REVEAL =====================
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          revealObserver.unobserve(entry.target);
+    // Carrega o arquivo GeoJSON do Brasil
+    async function loadGeoJson() {
+      const resp = await fetch(GEOJSON_URL);
+      if (!resp.ok) throw new Error("Erro ao baixar GeoJSON do Brasil");
+      brazilGeoJson = await resp.json();
+    }
+
+    // =========================================================================
+    // CONSTRUÇÃO E GERENCIAMENTO DOS FILTROS
+    // =========================================================================
+    
+    function prepareFilters() {
+      // Coleta valores únicos
+      uniqueIesTypes = [...new Set(rawData.map(r => r.tipo_ies))].filter(Boolean).sort();
+      uniqueLibs     = [...new Set(rawData.map(r => r.biblioteca_digital))].filter(Boolean).sort();
+      uniqueStates   = [...new Set(rawData.map(r => r.uf))].filter(Boolean).sort();
+
+      // Inicia com todos selecionados
+      selectedIesTypes = [...uniqueIesTypes];
+      selectedLibs     = [...uniqueLibs];
+      selectedStates   = [...uniqueStates];
+
+      // Constrói HTML dos dropdowns
+      buildDropdown('filter-ies-type', uniqueIesTypes, selectedIesTypes, 'Todos selecionados', 'IES');
+      buildDropdown('filter-lib', uniqueLibs, selectedLibs, 'Todas selecionadas', 'Bibliotecas');
+      buildDropdown('filter-state', uniqueStates, selectedStates, 'Todos selecionados', 'Estados');
+
+      // Fecha dropdowns se clicar fora
+      window.addEventListener('click', (e) => {
+        if (!e.target.closest('.multiselect-container')) {
+          document.querySelectorAll('.multiselect-container').forEach(c => c.classList.remove('open'));
         }
       });
-    }, { threshold: 0.12 });
+    }
 
-    document.querySelectorAll(".reveal").forEach(el => revealObserver.observe(el));
+    function buildDropdown(idPrefix, options, selectionsArray, allText, labelNoun) {
+      const container = document.getElementById(`${idPrefix}-container`);
+      const selectedEl = document.getElementById(`${idPrefix}-selected`);
+      const dropdownEl = document.getElementById(`${idPrefix}-dropdown`);
 
-    // ===================== KPI COUNTER TRIGGER =====================
-    const kpiObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.querySelectorAll("[data-target]").forEach(animarContador);
-          kpiObserver.unobserve(entry.target);
+      selectedEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Fecha outros dropdowns
+        document.querySelectorAll('.multiselect-container').forEach(c => {
+          if (c !== container) c.classList.remove('open');
+        });
+        container.classList.toggle('open');
+      });
+
+      // Cria checkbox para cada opção
+      dropdownEl.innerHTML = '';
+      
+      // Opção "Selecionar Tudo"
+      const allOption = document.createElement('div');
+      allOption.className = 'multiselect-option selected';
+      allOption.innerHTML = `<input type="checkbox" checked /> <span><strong>Selecionar Tudo</strong></span>`;
+      dropdownEl.appendChild(allOption);
+
+      const checkboxes = [];
+
+      options.forEach(opt => {
+        const optionEl = document.createElement('div');
+        optionEl.className = 'multiselect-option selected';
+        optionEl.innerHTML = `<input type="checkbox" value="${opt}" checked /> <span>${opt}</span>`;
+        dropdownEl.appendChild(optionEl);
+        
+        const checkbox = optionEl.querySelector('input');
+        checkboxes.push(checkbox);
+
+        optionEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
+          updateSelections();
+        });
+      });
+
+      const allCheckbox = allOption.querySelector('input');
+      allOption.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target !== allCheckbox) allCheckbox.checked = !allCheckbox.checked;
+        checkboxes.forEach(c => c.checked = allCheckbox.checked);
+        updateSelections();
+      });
+
+      function updateSelections() {
+        // Limpa e repovoa o array de seleções
+        selectionsArray.length = 0;
+        checkboxes.forEach(c => {
+          if (c.checked) selectionsArray.push(c.value);
+        });
+
+        // Atualiza checkbox "Selecionar Tudo"
+        allCheckbox.checked = (selectionsArray.length === options.length);
+
+        // Atualiza texto selecionado
+        if (selectionsArray.length === options.length) {
+          selectedEl.textContent = allText;
+        } else if (selectionsArray.length === 0) {
+          selectedEl.textContent = `Nenhum selecionado`;
+        } else {
+          selectedEl.textContent = `${selectionsArray.length} de ${options.length} ${labelNoun}`;
+        }
+
+        // Aplica filtro geral e atualiza gráficos
+        applyFilters();
+      }
+    }
+
+    function applyFilters() {
+      filteredData = rawData.filter(row => {
+        return selectedIesTypes.includes(row.tipo_ies) &&
+               selectedLibs.includes(row.biblioteca_digital) &&
+               selectedStates.includes(row.uf);
+      });
+
+      currentPage = 1; // Reseta página da tabela
+      updateDashboard();
+    }
+
+    // =========================================================================
+    // INICIALIZAÇÃO DE GRÁFICOS E MAPA
+    // =========================================================================
+    
+    function initMap() {
+      // Inicia mapa centrado no Brasil
+      map = L.map('map', {
+        zoomSnap: 0.1,
+        zoomControl: false,
+        attributionControl: false
+      }).setView([-14.235, -51.9253], 3.8);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Adiciona layer dos estados do Brasil com estilo vazio inicialmente
+      geojsonLayer = L.geoJson(brazilGeoJson, {
+        style: styleState,
+        onEachFeature: onEachStateFeature
+      }).addTo(map);
+    }
+
+    function initCharts() {
+      // Configurações Globais do Chart.js para combinar com Tema Navy
+      Chart.defaults.color = '#8fafc8';
+      Chart.defaults.font.family = 'Inter, sans-serif';
+      Chart.defaults.font.size = 11;
+
+      // 1. Gráfico de Ranking de Bibliotecas (Barras Horizontais)
+      const ctxRanking = document.getElementById('chart-ranking').getContext('2d');
+      chartRanking = new Chart(ctxRanking, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: '#00b4d8',
+            borderColor: '#90e0ef',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#162032',
+              titleColor: '#ffffff',
+              bodyColor: '#8fafc8',
+              borderColor: 'rgba(0, 180, 216, 0.25)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { precision: 0 }
+            },
+            y: {
+              grid: { display: false }
+            }
+          }
         }
       });
-    }, { threshold: 0.3 });
 
-    const kpiStrip = document.querySelector(".kpi-strip");
-    if (kpiStrip) kpiObserver.observe(kpiStrip);
+      // 2. Gráfico de Pizza/Rosca (Tipo IES)
+      const ctxType = document.getElementById('chart-type').getContext('2d');
+      chartType = new Chart(ctxType, {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: ['#00b4d8', '#06d6a0', '#ffd166', '#ef476f', '#1b2e44'],
+            borderWidth: 2,
+            borderColor: '#162032'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 14, color: '#f0f4f8' }
+            },
+            tooltip: {
+              backgroundColor: '#162032',
+              titleColor: '#ffffff',
+              bodyColor: '#8fafc8',
+              borderColor: 'rgba(0, 180, 216, 0.25)',
+              borderWidth: 1
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
 
-    // ===================== NAV SCROLL EFFECT =====================
-    const nav = document.querySelector("nav");
-    window.addEventListener("scroll", () => {
-      nav.style.borderBottomColor = window.scrollY > 60
-        ? "rgba(0, 180, 216, 0.25)"
-        : "rgba(0, 180, 216, 0.18)";
-    }, { passive: true });
+    // =========================================================================
+    // LOGICA DE RENDERIZAÇÃO DO DASHBOARD
+    // =========================================================================
+    
+    function updateDashboard() {
+      // 1. Atualizar os KPIs
+      const iesCount = new Set(filteredData.map(r => r.instituicao)).size;
+      const sigsCount = filteredData.length;
+      const distinctLibs = new Set(filteredData.map(r => r.biblioteca_digital)).size;
+
+      document.getElementById('kpi-ies').textContent = iesCount;
+      document.getElementById('kpi-signatures').textContent = sigsCount;
+      document.getElementById('kpi-distinct-libs').textContent = distinctLibs;
+
+      // 2. Atualizar o Mapa
+      geojsonLayer.eachLayer(layer => {
+        geojsonLayer.resetStyle(layer);
+      });
+
+      // 3. Atualizar o Gráfico de Ranking
+      const rankingData = {};
+      filteredData.forEach(r => {
+        if (!rankingData[r.biblioteca_digital]) rankingData[r.biblioteca_digital] = new Set();
+        rankingData[r.biblioteca_digital].add(r.instituicao);
+      });
+
+      const sortedRanking = Object.keys(rankingData)
+        .map(lib => ({ name: lib, count: rankingData[lib].size }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15); // Exibe as top 15
+
+      chartRanking.data.labels = sortedRanking.map(i => i.name);
+      chartRanking.data.datasets[0].data = sortedRanking.map(i => i.count);
+      chartRanking.update();
+
+      // 4. Atualizar o Gráfico de Rosca (Tipos IES)
+      const typeData = {};
+      filteredData.forEach(r => {
+        if (!typeData[r.tipo_ies]) typeData[r.tipo_ies] = new Set();
+        typeData[r.tipo_ies].add(r.instituicao);
+      });
+
+      chartType.data.labels = Object.keys(typeData);
+      chartType.data.datasets[0].data = Object.keys(typeData).map(k => typeData[k].size);
+      chartType.update();
+
+      // 5. Atualizar a Tabela Detalhada
+      renderTable();
+    }
+
+    // =========================================================================
+    // LÓGICA DO MAPA COROPLÉTICO (ESTILOS E INTERAÇÕES)
+    // =========================================================================
+    
+    // Conta quantas instituições distintas existem no estado filtrado
+    function getIESCountForState(ufSigla) {
+      return new Set(
+        filteredData
+          .filter(r => r.uf.toUpperCase() === ufSigla.toUpperCase())
+          .map(r => r.instituicao)
+      ).size;
+    }
+
+    // Determina a cor com base no número de IES
+    function getColorForState(count) {
+      if (count === 0) return '#0f1c2c';
+      if (count <= 3)  return '#1b4965';
+      if (count <= 10) return '#1d2d44';
+      if (count <= 20) return '#0077b6';
+      return '#00b4d8'; // Máximo
+    }
+
+    function styleState(feature) {
+      const uf = feature.properties.SIGLA;
+      const count = getIESCountForState(uf);
+      return {
+        fillColor: getColorForState(count),
+        weight: 1,
+        opacity: 0.6,
+        color: 'rgba(0, 180, 216, 0.4)',
+        fillOpacity: 0.85
+      };
+    }
+
+    function onEachStateFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: filterByState
+      });
+    }
+
+    function highlightFeature(e) {
+      const layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: '#06d6a0',
+        fillOpacity: 0.95
+      });
+      layer.bringToFront();
+
+      const uf = layer.feature.properties.SIGLA;
+      const count = getIESCountForState(uf);
+      
+      // Cria tooltip/popup rápido
+      layer.bindTooltip(`<strong>${layer.feature.properties.nome} (${uf})</strong><br/>${count} instituições`, {
+        direction: 'center',
+        className: 'custom-tooltip',
+        permanent: false
+      }).openTooltip();
+    }
+
+    function resetHighlight(e) {
+      geojsonLayer.resetStyle(e.target);
+    }
+
+    // Clique no estado no mapa filtra todo o painel
+    function filterByState(e) {
+      const uf = e.target.feature.properties.SIGLA;
+      const filterSelect = document.getElementById('filter-state-selected');
+      
+      // Se já estava selecionado apenas esse estado, limpa o filtro. Senão filtra.
+      if (selectedStates.length === 1 && selectedStates[0] === uf) {
+        selectedStates = [...uniqueStates];
+        filterSelect.textContent = 'Todos selecionados';
+      } else {
+        selectedStates = [uf];
+        filterSelect.textContent = `Apenas ${uf}`;
+      }
+
+      // Sincroniza os checkboxes do menu de estados
+      document.querySelectorAll('#filter-state-dropdown input').forEach(c => {
+        c.checked = (selectedStates.includes(c.value) || selectedStates.length === uniqueStates.length);
+      });
+
+      applyFilters();
+    }
+
+    // =========================================================================
+    // TABELA DE DADOS DETALHADA E BUSCA
+    // =========================================================================
+    
+    const searchInput = document.getElementById('table-search');
+    const tableBody = document.getElementById('table-body');
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+    const pageInfo = document.getElementById('table-page-info');
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      currentPage = 1;
+      renderTable();
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      const maxPages = Math.ceil(getTableData().length / rowsPerPage);
+      if (currentPage < maxPages) {
+        currentPage++;
+        renderTable();
+      }
+    });
+
+    function getTableData() {
+      // Se houver texto de busca
+      if (!searchQuery) return filteredData;
+      return filteredData.filter(row => {
+        return row.instituicao.toLowerCase().includes(searchQuery) ||
+               row.biblioteca_digital.toLowerCase().includes(searchQuery) ||
+               row.estado.toLowerCase().includes(searchQuery) ||
+               row.uf.toLowerCase().includes(searchQuery);
+      });
+    }
+
+    function renderTable() {
+      const data = getTableData();
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const paginatedItems = data.slice(startIndex, endIndex);
+
+      tableBody.innerHTML = '';
+      
+      if (paginatedItems.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--muted);">Nenhuma assinatura encontrada</td></tr>`;
+        pageInfo.textContent = 'Mostrando 0 de 0 registros';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+
+      paginatedItems.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${row.instituicao}</strong></td>
+          <td><span class="tipo-tag">${row.tipo_ies}</span></td>
+          <td>${row.estado} (${row.uf})</td>
+          <td style="color: var(--teal-soft); font-weight: 500;">${row.biblioteca_digital}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      const maxPages = Math.ceil(data.length / rowsPerPage);
+      pageInfo.textContent = `Mostrando ${startIndex + 1} a ${Math.min(endIndex, data.length)} de ${data.length} registros`;
+      
+      prevBtn.disabled = (currentPage === 1);
+      nextBtn.disabled = (currentPage === maxPages || maxPages === 0);
+    }
+
+    // =========================================================================
+    // DADOS MOCK (SNAPSHOT DE DEMONSTRAÇÃO)
+    // =========================================================================
+    function getMockData() {
+      return [
+        { instituicao: 'USP', tipo_ies: 'Pública', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'USP', tipo_ies: 'Pública', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Springer Link' },
+        { instituicao: 'USP', tipo_ies: 'Pública', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'JSTOR' },
+        { instituicao: 'UNICAMP', tipo_ies: 'Pública', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'UNICAMP', tipo_ies: 'Pública', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Springer Link' },
+        { instituicao: 'UFMG', tipo_ies: 'Pública', estado: 'Minas Gerais', uf: 'MG', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'UFMG', tipo_ies: 'Pública', estado: 'Minas Gerais', uf: 'MG', biblioteca_digital: 'Elsevier' },
+        { instituicao: 'UFRJ', tipo_ies: 'Pública', estado: 'Rio de Janeiro', uf: 'RJ', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'UFRJ', tipo_ies: 'Pública', estado: 'Rio de Janeiro', uf: 'RJ', biblioteca_digital: 'JSTOR' },
+        { instituicao: 'PUC-SP', tipo_ies: 'Comunitária', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'PUC-SP', tipo_ies: 'Comunitária', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'E-livro' },
+        { instituicao: 'Mackenzie', tipo_ies: 'Privada', estado: 'São Paulo', uf: 'SP', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'UFSC', tipo_ies: 'Pública', estado: 'Santa Catarina', uf: 'SC', biblioteca_digital: 'Springer Link' },
+        { instituicao: 'UFSC', tipo_ies: 'Pública', estado: 'Santa Catarina', uf: 'SC', biblioteca_digital: 'Wiley Online Library' },
+        { instituicao: 'FURB', tipo_ies: 'Pública', estado: 'Santa Catarina', uf: 'SC', biblioteca_digital: 'Minha Biblioteca' },
+        { instituicao: 'UFRGS', tipo_ies: 'Pública', estado: 'Rio Grande do Sul', uf: 'RS', biblioteca_digital: 'Elsevier' },
+        { instituicao: 'UFRGS', tipo_ies: 'Pública', estado: 'Rio Grande do Sul', uf: 'RS', biblioteca_digital: 'Minha Biblioteca' }
+      ];
+    }
   </script>
 
 </body>
