@@ -906,16 +906,23 @@
           header: true,
           skipEmptyLines: true,
           complete: function(results) {
-            rawData = results.data.map(row => ({
-              instituicao: row.instituicao || '',
-              tipo_ies: row.tipo_ies || 'Não informado',
-              estado: row.estado || '',
-              uf: row.uf || '',
-              biblioteca_digital: row.biblioteca_digital || '',
-              email_contato: row.email_contato || '',
-              site_biblioteca: row.site_biblioteca || '',
-              data_resposta: row.data_resposta || ''
-            })).filter(row => row.instituicao && row.biblioteca_digital);
+            rawData = results.data.map(row => {
+              const getVal = (names) => {
+                for (let key in row) {
+                  const cleanKey = key.replace(/^\uFEFF/, '').trim().toLowerCase();
+                  if (names.includes(cleanKey)) return String(row[key] || '').trim();
+                }
+                return '';
+              };
+              return {
+                instituicao: getVal(['instituicao', 'instituição', 'nome da instituição']),
+                tipo_ies: getVal(['tipo_ies', 'tipo de ies', 'tipo']) || 'Não informado',
+                estado: getVal(['estado', 'estado / uf']),
+                uf: getVal(['uf']),
+                biblioteca_digital: getVal(['biblioteca_digital', 'biblioteca digital', 'bibliotecas']),
+                data_resposta: getVal(['data_resposta', 'data_resp', 'timestamp', 'carimbo de data/hora'])
+              };
+            }).filter(row => row.instituicao && row.biblioteca_digital);
             
             prepareFilters();
             resolve();
