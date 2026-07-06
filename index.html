@@ -414,7 +414,7 @@
       border-radius: var(--radius-sm);
       max-height: 250px;
       overflow-y: auto;
-      z-index: 100;
+      z-index: 1200;
       display: none;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       padding: 8px 0;
@@ -1263,7 +1263,7 @@
       const count = getIESCountForState(uf);
       
       // Cria tooltip/popup rápido
-      layer.bindTooltip(`<strong>${layer.feature.properties.nome} (${uf})</strong><br/>${count} instituições`, {
+      layer.bindTooltip(`<strong>${layer.feature.properties.name || layer.feature.properties.nome || ''} (${uf})</strong><br/>${count} instituições`, {
         direction: 'center',
         className: 'custom-tooltip',
         permanent: false
