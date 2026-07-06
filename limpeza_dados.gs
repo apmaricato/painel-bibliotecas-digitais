@@ -130,7 +130,7 @@ function _executarLimpeza() {
   // --- Expandir para formato longo (1 linha por assinatura de biblioteca) ---
   const cabecalhoSaida = [
     "instituicao", "tipo_ies", "estado", "uf",
-    "biblioteca_digital", "email_contato", "site_biblioteca", "data_resposta"
+    "biblioteca_digital", "data_resposta"
   ];
 
   const linhasSaida    = [];
@@ -144,8 +144,6 @@ function _executarLimpeza() {
     const estadoRaw    = String(linha[C.ESTADO]        || "").trim();
     const estado       = _normalizarEstado(estadoRaw);
     const uf           = _extrairUF(estadoRaw);
-    const emailContato = String(linha[C.EMAIL_CONTATO] || "").trim();
-    const site         = String(linha[C.SITE]          || "").trim();
     const dataResp     = linha[C.TIMESTAMP] instanceof Date
       ? Utilities.formatDate(linha[C.TIMESTAMP], CONFIG.TIMEZONE, "yyyy-MM-dd")
       : "";
@@ -153,11 +151,11 @@ function _executarLimpeza() {
     const bibliotecas = _parseBibliotecas(String(linha[C.BIBLIOTECAS] || ""), aliasesBiblio);
 
     if (bibliotecas.length === 0) {
-      linhasSaida.push([nomeDisplay, tipoIes, estado, uf, "", emailContato, site, dataResp]);
+      linhasSaida.push([nomeDisplay, tipoIes, estado, uf, "", dataResp]);
     } else {
       for (const bib of bibliotecas) {
         bibliotecasSet.add(bib);
-        linhasSaida.push([nomeDisplay, tipoIes, estado, uf, bib, emailContato, site, dataResp]);
+        linhasSaida.push([nomeDisplay, tipoIes, estado, uf, bib, dataResp]);
       }
     }
   }
