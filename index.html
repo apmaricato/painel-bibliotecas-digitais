@@ -714,7 +714,7 @@
             Este painel reúne dados coletados por meio de formulário colaborativo, respondido voluntariamente por profissionais de bibliotecas de todo o Brasil. Os dados são <strong>públicos, abertos e atualizados periodicamente</strong>.
           </p>
           <p>
-            Iniciativa do <strong>CBBU — Conselho Brasileiro de Bibliotecas Universitárias</strong>, com o objetivo de mapear, comparar e qualificar o acesso às fontes digitais nas instituições de ensino superior brasileiras.
+            Desenvolvido por <strong>Pedro Maricato - Bibliotecário CRB 8 - 6922</strong>, com o objetivo de mapear, comparar e qualificar o acesso às fontes digitais nas instituições de ensino superior brasileiras.
           </p>
         </div>
         <div>
@@ -782,7 +782,6 @@
     <div class="footer-inner">
       <div class="footer-logo">📚 Painel Nacional de Bibliotecas Digitais</div>
       <p class="footer-desc">
-        Iniciativa do CBBU — Conselho Brasileiro de Bibliotecas Universitárias.<br />
         Desenvolvido por Pedro Maricato - Bibliotecário CRB 8 - 6922.<br />
         Dados coletados colaborativamente, tratados e disponibilizados gratuitamente.
       </p>
@@ -875,8 +874,10 @@
         
         // Remove tela de loading
         const loader = document.getElementById('loader');
-        loader.style.opacity = 0;
-        setTimeout(() => loader.style.display = 'none', 400);
+        if (loader) {
+          loader.style.opacity = 0;
+          setTimeout(() => loader.style.display = 'none', 400);
+        }
 
         // Inicializa visuais
         initMap();
@@ -1170,9 +1171,9 @@
       document.getElementById('kpi-distinct-libs').textContent = distinctLibs;
 
       // 2. Atualizar o Mapa
-      geojsonLayer.eachLayer(layer => {
-        geojsonLayer.resetStyle(layer);
-      });
+      if (geojsonLayer) {
+        geojsonLayer.setStyle(styleState);
+      }
 
       // 3. Atualizar o Gráfico de Ranking
       const rankingData = {};
@@ -1211,6 +1212,7 @@
     
     // Conta quantas instituições distintas existem no estado filtrado
     function getIESCountForState(ufSigla) {
+      if (!ufSigla) return 0;
       return new Set(
         filteredData
           .filter(r => r.uf.toUpperCase() === ufSigla.toUpperCase())
@@ -1228,7 +1230,7 @@
     }
 
     function styleState(feature) {
-      const uf = feature.properties.SIGLA;
+      const uf = feature.properties.sigla || feature.properties.SIGLA || '';
       const count = getIESCountForState(uf);
       return {
         fillColor: getColorForState(count),
@@ -1256,7 +1258,7 @@
       });
       layer.bringToFront();
 
-      const uf = layer.feature.properties.SIGLA;
+      const uf = layer.feature.properties.sigla || layer.feature.properties.SIGLA || '';
       const count = getIESCountForState(uf);
       
       // Cria tooltip/popup rápido
@@ -1273,7 +1275,7 @@
 
     // Clique no estado no mapa filtra todo o painel
     function filterByState(e) {
-      const uf = e.target.feature.properties.SIGLA;
+      const uf = e.target.feature.properties.sigla || e.target.feature.properties.SIGLA || '';
       const filterSelect = document.getElementById('filter-state-selected');
       
       // Se já estava selecionado apenas esse estado, limpa o filtro. Senão filtra.
