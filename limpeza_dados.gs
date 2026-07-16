@@ -94,6 +94,9 @@ function executarManualmente() {
 function _executarLimpeza() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  // Garante que os aliases padrão estejam semeados na tabela
+  _garantirAliasesPadrao(ss);
+
   const aliasesBiblio = _carregarAliases(ss, CONFIG.ABA_ALIASES_BIBLIO);
   const aliasesInst   = _carregarAliases(ss, CONFIG.ABA_ALIASES_INST);
 
@@ -626,3 +629,91 @@ function criarFormularioFornecedores() {
     SpreadsheetApp.getUi().alert("Erro ao criar formulário: " + err.message);
   }
 }
+
+/**
+ * Garante e alimenta automaticamente a aba 'Aliases Bibliotecas' com uma lista padrão
+ * de variantes comuns antes de cada execução de limpeza, agilizando o processo.
+ */
+function _garantirAliasesPadrao(ss) {
+  let ws = ss.getSheetByName(CONFIG.ABA_ALIASES_BIBLIO);
+  
+  if (!ws) {
+    ws = ss.insertSheet(CONFIG.ABA_ALIASES_BIBLIO);
+    ws.getRange(1, 1, 1, 2).setValues([["variante", "nome_padrao"]]);
+    ws.getRange(1, 1, 1, 2).setFontWeight("bold").setBackground("#e8f0fe");
+  }
+  
+  const dadosExistentes = ws.getDataRange().getValues();
+  const variantesExistentes = new Set(
+    dadosExistentes.slice(1).map(row => String(row[0] || "").trim().toLowerCase())
+  );
+  
+  const novosRows = [];
+  const ALIASES_PADRAO = [
+    ["dynamed", "DynaMed"],
+    ["jstor", "JSTOR"],
+    ["economatica", "Economática"],
+    ["economática", "Economática"],
+    ["uptodate", "UpToDate"],
+    ["springer", "Springer Link"],
+    ["springerlink", "Springer Link"],
+    ["springer link", "Springer Link"],
+    ["e-livros", "E-livro"],
+    ["elivros", "E-livro"],
+    ["e-livro", "E-livro"],
+    ["elivro", "E-livro"],
+    ["naxos", "Naxos Music Library"],
+    ["naxos music library", "Naxos Music Library"],
+    ["wiley", "Wiley Online Library"],
+    ["wiley online", "Wiley Online Library"],
+    ["cengage", "BD Cengage"],
+    ["bd cengage", "BD Cengage"],
+    ["ebsco ebook collection", "EBSCO eBooks"],
+    ["ebsco ebooks", "EBSCO eBooks"],
+    ["ebsco e-books", "EBSCO eBooks"],
+    ["jstor e-books", "JSTOR e-Books"],
+    ["jstor ebooks", "JSTOR e-Books"],
+    ["proview", "BD Proview"],
+    ["bd proview", "BD Proview"],
+    ["proquest o'reilly", "ProQuest O'Reilly"],
+    ["proquest oreilly", "ProQuest O'Reilly"],
+    ["oreilly", "ProQuest O'Reilly"],
+    ["o'reilly", "ProQuest O'Reilly"],
+    ["pqdt", "ProQuest Dissertations & Theses Global (PQDT)"],
+    ["proquest dissertations", "ProQuest Dissertations & Theses Global (PQDT)"],
+    ["ieee", "IEEE Xplore"],
+    ["ieee xplore", "IEEE Xplore"],
+    ["heinonline", "HeinOnline"],
+    ["cambridge", "Cambridge Core"],
+    ["cambridge core", "Cambridge Core"],
+    ["scopus", "Scopus"],
+    ["web of science", "Web of Science"],
+    ["wos", "Web of Science"],
+    ["sciencedirect", "ScienceDirect Books"],
+    ["science direct", "ScienceDirect Books"],
+    ["elsevier sciencedirect", "ScienceDirect Books"],
+    ["taylor francis", "Taylor and Francis"],
+    ["taylor & francis", "Taylor and Francis"],
+    ["arvore de livros", "Árvore de Livros"],
+    ["árvore", "Árvore de Livros"],
+    ["forum", "Fórum"],
+    ["fórum", "Fórum"],
+    ["religion", "ATLA Religion Database"],
+    ["capes", "Portal de Periódicos da Capes"],
+    ["portal capes", "Portal de Periódicos da Capes"],
+    ["ebsco", "EBSCO"],
+    ["ebsco-medline", "EBSCO-MEDLINE Ultimate"],
+    ["medline", "EBSCO-MEDLINE Ultimate"]
+  ];
+  
+  for (const [variante, nomePadrao] of ALIASES_PADRAO) {
+    if (!variantesExistentes.has(variante.toLowerCase().trim())) {
+      novosRows.push([variante, nomePadrao]);
+    }
+  }
+  
+  if (novosRows.length > 0) {
+    ws.getRange(ws.getLastRow() + 1, 1, novosRows.length, 2).setValues(novosRows);
+  }
+}
+
