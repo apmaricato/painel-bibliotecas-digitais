@@ -16,7 +16,7 @@ Abra-a no Google Drive (se ainda estiver em formato `.xlsx`, o Google converte a
 
 ### Passo 1 — Verificar nomes das abas
 
-Antes de instalar o script, confirme que sua planilha tem uma aba chamada **`Matriz`** com as respostas brutas do formulário.
+Antes de instalar o script, confirme que sua planilha tem uma aba chamada **`Respostas do formulário 1`** com as respostas brutas do formulário.
 
 > O script cria automaticamente as abas `Aliases Bibliotecas`, `Aliases Instituições`, `Dados Limpos` e `Log Limpeza` se elas não existirem.
 
@@ -226,11 +226,11 @@ git push -u origin main
 
 ## 🆘 Problemas comuns
 
-**"Aba Matriz não encontrada"**  
-→ Verifique se o nome da aba está exatamente `Matriz` (sem acento, sem espaço extra). Ajuste a constante `ABA_RESPOSTAS` no topo do script se necessário.
+**"Aba não encontrada"**  
+→ Verifique se o nome da aba está exatamente `Respostas do formulário 1`. Ajuste a constante `ABA_RESPOSTAS` no topo do script se necessário.
 
 **Mapa do Brasil não aparece no Looker Studio**  
 → Confirme que o campo `uf` está com tipo `Geo → Subdivisão do país (1º nível)` e prefixo `BR`.
 
 **Script roda mas `Dados Limpos` fica vazio**  
-→ Abra o Apps Script → menu Execuções (ícone ▶) para ver erros. Provavelmente é o índice de coluna errado — confira se sua aba `Matriz` tem as colunas na ordem documentada no script.
+→ Abra o Apps Script → menu Execuções (ícone ▶) para ver erros. Provavelmente é o índice de coluna errado — confira se sua aba `Respostas do formulário 1` tem as colunas na ordem documentada no script.

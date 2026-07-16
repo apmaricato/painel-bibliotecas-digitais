@@ -29,33 +29,25 @@
  * ano, antes de disparar o email em massa).
  */
 
-// >>> PREENCHA 1: nome EXATO da aba de respostas (aparece na aba inferior
-// da planilha; geralmente "Respostas ao formulário 1").
-const NOME_ABA_RESPOSTAS = "Respostas ao formulário 1";
+const NOME_ABA_RESPOSTAS = "Form_Responses";
 
 // PREENCHIDO em 2026-07-05 com os valores reais devolvidos por
 // criar_formulario.gs (link publico do formulario ja criado).
 const FORM_URL_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdxrN5uD4cTMD9k9xiJUBh4YVoQu2M5oNG_FMsd_Tee1qykVQ/viewform";
 
-// PREENCHIDO com os entry.XXXXXXXX reais (do log de execucao de
-// criar_formulario.gs). Esses codigos NAO mudam mesmo se voce renomear a
-// pergunta depois no Forms (ex.: ao adicionar os acentos de volta).
+// PREENCHIDO com os entry.XXXXXXXX reais do formulário novo
 const ENTRY_IDS = {
-  nomeInstituicao: "entry.329448775",
-  tipoIes: "entry.1058813345",
-  bibliotecasDigitais: "entry.215675741",
-  estado: "entry.1015073937",
+  nomeInstituicao: "entry.1596847644",
+  tipoIes: "entry.1645837468",
+  bibliotecasDigitais: "entry.474786048",
+  estado: "entry.2684739",
 };
 
 // >>> CONFIRME 4: os nomes EXATOS das colunas na planilha de respostas
-// (cabecalho da 1a linha). Como o formulario foi criado sem acentos (para
-// evitar erro de encoding no Apps Script), os cabecalhos comecam assim.
-// Se depois voce corrigir a acentuacao das perguntas no Forms e o
-// cabecalho da planilha acompanhar a mudanca, atualize os valores abaixo
-// para bater com o que aparecer na planilha.
+// (cabeçalho da 1a linha).
 const COLUNAS = {
-  nomeInstituicao: "Nome da sua Instituicao",
-  tipoIes: "Sua instituicao e",
+  nomeInstituicao: "Nome da sua Instituição",
+  tipoIes: "Sua instituição é",
   bibliotecasDigitais: "Bibliotecas Digitais assinadas",
   estado: "Estado",
 };
@@ -69,12 +61,7 @@ const COLUNA_LINK_SAIDA = "Link de atualização";
 // Forms.
 const SEPARADOR_BIBLIOTECAS = ",";
 
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("Bibliotecas Digitais")
-    .addItem("Gerar links de atualização", "gerarLinks")
-    .addToUi();
-}
+
 
 function gerarLinks() {
   const planilha = SpreadsheetApp.getActiveSpreadsheet();
