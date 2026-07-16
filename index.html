@@ -334,6 +334,32 @@
       padding: 12px 16px;
       border-bottom: 2px solid var(--border);
     }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      position: relative;
+      padding-right: 28px;
+    }
+    th.sortable:hover {
+      color: var(--teal);
+      background: rgba(255,255,255,0.06);
+    }
+    th.sortable::after {
+      content: '↕';
+      position: absolute;
+      right: 12px;
+      color: rgba(143, 175, 200, 0.3);
+      font-size: 0.75rem;
+    }
+    th.sortable.asc::after {
+      content: '▲';
+      color: var(--teal);
+    }
+    th.sortable.desc::after {
+      content: '▼';
+      color: var(--teal);
+    }
     td {
       padding: 12px 16px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -913,10 +939,10 @@
             <table id="data-table">
               <thead>
                 <tr>
-                  <th>Instituição</th>
-                  <th>Tipo IES</th>
-                  <th>Estado</th>
-                  <th>Biblioteca Digital</th>
+                  <th class="sortable asc" id="th-instituicao" onclick="sortTable('instituicao')">Instituição</th>
+                  <th class="sortable" id="th-tipo_ies" onclick="sortTable('tipo_ies')">Tipo IES</th>
+                  <th class="sortable" id="th-estado" onclick="sortTable('estado')">Estado</th>
+                  <th class="sortable" id="th-biblioteca_digital" onclick="sortTable('biblioteca_digital')">Biblioteca Digital</th>
                 </tr>
               </thead>
               <tbody id="table-body">
@@ -1978,6 +2004,8 @@
     let currentPage = 1;
     const rowsPerPage = 10;
     let searchQuery = '';
+    let currentSortColumn = 'instituicao';
+    let currentSortDirection = 'asc';
 
     // =========================================================================
     // INICIALIZAÇÃO E CARREGAMENTO
@@ -2556,6 +2584,29 @@
       }
     }
 
+    // Ordenação de colunas da tabela de assinaturas
+    function sortTable(columnName) {
+      if (currentSortColumn === columnName) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortColumn = columnName;
+        currentSortDirection = 'asc';
+      }
+      
+      // Atualiza classes visuais das setas dos headers
+      document.querySelectorAll('#data-table th').forEach(th => {
+        th.classList.remove('asc', 'desc');
+      });
+      
+      const activeTh = document.getElementById(`th-${columnName}`);
+      if (activeTh) {
+        activeTh.classList.add(currentSortDirection);
+      }
+      
+      currentPage = 1;
+      renderTable();
+    }
+
     // =========================================================================
     // TABELA DE DADOS DETALHADA E BUSCA
     // =========================================================================
@@ -2588,14 +2639,30 @@
     });
 
     function getTableData() {
-      // Se houver texto de busca
-      if (!searchQuery) return filteredData;
-      return filteredData.filter(row => {
-        return row.instituicao.toLowerCase().includes(searchQuery) ||
-               row.biblioteca_digital.toLowerCase().includes(searchQuery) ||
-               row.estado.toLowerCase().includes(searchQuery) ||
-               row.uf.toLowerCase().includes(searchQuery);
-      });
+      let data = [...filteredData];
+      
+      // Se houver busca de texto
+      if (searchQuery) {
+        data = data.filter(row => {
+          return row.instituicao.toLowerCase().includes(searchQuery) ||
+                 row.biblioteca_digital.toLowerCase().includes(searchQuery) ||
+                 row.estado.toLowerCase().includes(searchQuery) ||
+                 row.uf.toLowerCase().includes(searchQuery);
+        });
+      }
+      
+      // Ordenação
+      if (currentSortColumn) {
+        data.sort((a, b) => {
+          let valA = a[currentSortColumn] || '';
+          let valB = b[currentSortColumn] || '';
+          
+          let comparison = valA.toString().localeCompare(valB.toString(), 'pt-BR', { sensitivity: 'base' });
+          return currentSortDirection === 'asc' ? comparison : -comparison;
+        });
+      }
+      
+      return data;
     }
 
     function renderTable() {
