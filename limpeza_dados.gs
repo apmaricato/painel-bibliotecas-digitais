@@ -392,6 +392,7 @@ function onOpen() {
     .addItem("🔗 Gerar links de atualização",      "gerarLinks")
     .addItem("🔤 Ordenar opções do Formulário",    "ordenarBibliotecasFormulario")
     .addItem("➕ Criar Formulário de Fornecedores", "criarFormularioFornecedores")
+    .addItem("🔍 Depurar: Listar Abas e Linhas",   "exibirNomesAbas")
     .addSeparator()
     .addItem("📋 Ver log de execuções",            "irParaLog")
     .addItem("✨ Ir para Dados Limpos",            "irParaDadosLimpos")
@@ -715,5 +716,18 @@ function _garantirAliasesPadrao(ss) {
   if (novosRows.length > 0) {
     ws.getRange(ws.getLastRow() + 1, 1, novosRows.length, 2).setValues(novosRows);
   }
+}
+
+/**
+ * Exibe um alerta visual com a listagem de todas as abas e sua quantidade de linhas.
+ * Utilizado para depuração quando o número de dados processados retorna zero.
+ */
+function exibirNomesAbas() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const info = ss.getSheets().map(s => {
+    return `• "${s.getName()}": ${s.getLastRow()} linhas, ${s.getLastColumn()} colunas`;
+  }).join("\n");
+  
+  SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info);
 }
 
