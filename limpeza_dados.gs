@@ -728,6 +728,14 @@ function exibirNomesAbas() {
     return `• "${s.getName()}": ${s.getLastRow()} linhas, ${s.getLastColumn()} colunas`;
   }).join("\n");
   
-  SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info);
+  const ws = ss.getSheetByName("Form_Responses");
+  let headers = "";
+  if (ws && ws.getLastColumn() > 0) {
+    const headerRow = ws.getRange(1, 1, 1, ws.getLastColumn()).getValues()[0];
+    headers = "\n\n📋 Cabeçalhos de 'Form_Responses':\n" + 
+              headerRow.map((h, i) => `   [${i}] ${h}`).join("\n");
+  }
+  
+  SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info + headers);
 }
 
