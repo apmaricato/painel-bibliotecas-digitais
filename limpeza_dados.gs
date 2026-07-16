@@ -96,6 +96,7 @@ function _executarLimpeza() {
 
   // Garante que os aliases padrão estejam semeados na tabela
   _garantirAliasesPadrao(ss);
+  _garantirAliasesInstPadrao(ss);
 
   const aliasesBiblio = _carregarAliases(ss, CONFIG.ABA_ALIASES_BIBLIO);
   const aliasesInst   = _carregarAliases(ss, CONFIG.ABA_ALIASES_INST);
@@ -845,5 +846,42 @@ function exibirNomesAbas() {
   }
   
   SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info + headers + sample);
+}
+
+/**
+ * Garante e alimenta automaticamente a aba 'Aliases Instituições' com uma lista padrão
+ * de variantes comuns antes de cada execução de limpeza, agilizando o processo.
+ */
+function _garantirAliasesInstPadrao(ss) {
+  let ws = ss.getSheetByName(CONFIG.ABA_ALIASES_INST);
+  
+  if (!ws) {
+    ws = ss.insertSheet(CONFIG.ABA_ALIASES_INST);
+    ws.getRange(1, 1, 1, 2).setValues([["variante", "nome_padrao"]]);
+    ws.getRange(1, 1, 1, 2).setFontWeight("bold").setBackground("#e8f0fe");
+  }
+  
+  const dadosExistentes = ws.getDataRange().getValues();
+  const variantesExistentes = new Set(
+    dadosExistentes.slice(1).map(row => String(row[0] || "").trim().toLowerCase())
+  );
+  
+  const novosRows = [];
+  const ALIASES_INST_PADRAO = [
+    ["fundação universidade regional de blumenau", "Fundação Universidade Regional de Blumenau (FURB)"],
+    ["fundação dom cabral  (fdc)", "Fundação Dom Cabral (FDC)"],
+    ["fundação dom cabral(fdc)", "Fundação Dom Cabral (FDC)"],
+    ["serviço nacional de aprendizagem comercial (senac)", "Serviço Nacional de Aprendizagem Comercial (SENAC-SC)"]
+  ];
+  
+  for (const [variante, nomePadrao] of ALIASES_INST_PADRAO) {
+    if (!variantesExistentes.has(variante.toLowerCase().trim())) {
+      novosRows.push([variante, nomePadrao]);
+    }
+  }
+  
+  if (novosRows.length > 0) {
+    ws.getRange(ws.getLastRow() + 1, 1, novosRows.length, 2).setValues(novosRows);
+  }
 }
 
