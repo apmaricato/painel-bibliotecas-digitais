@@ -246,8 +246,11 @@ function _extrairUF(estado) {
 
 function _parseBibliotecas(campo, aliases) {
   if (!campo || campo === "None" || campo.trim() === "") return [];
-  return campo
-    .split(";")
+  
+  // Divide o campo por ponto e vírgula, vírgula, " e " ou " and "
+  const partes = campo.split(/\s*(?:;|,|\s+e\s+|\s+and\s+)\s*/i);
+  
+  return partes
     .map(b => _normalizarNome(b))
     .filter(b => b.length > 0)
     .map(b => _aplicarAlias(aliases, b));
