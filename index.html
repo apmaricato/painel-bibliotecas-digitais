@@ -997,6 +997,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Como Citar -->
+      <div class="citation-box reveal" style="margin-top: 40px; padding: 24px; background: var(--navy-mid); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);">
+        <h3 style="color: var(--teal); margin-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <span>📝 Como citar este projeto (ABNT)</span>
+        </h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; color: var(--white); font-family: monospace; background: rgba(0,0,0,0.15); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--teal); overflow-x: auto; white-space: pre-wrap; word-break: break-all;">MARICATO, A. P. de M. <strong>Painel Nacional de Bibliotecas Digitais</strong>. 2026. Disponível em: &lt;https://painelbibliotecasdigitais.com.br&gt;. Acesso em: <span id="citation-access-date"></span>.</p>
+      </div>
     </div>
   </section>
 
@@ -1964,6 +1972,14 @@
         if (loader) {
           loader.style.opacity = 0;
           setTimeout(() => loader.style.display = 'none', 400);
+        }
+
+        // Atualizar data de acesso na citação ABNT com o dia de hoje
+        const citationEl = document.getElementById('citation-access-date');
+        if (citationEl) {
+          const months = ['jan.', 'fev.', 'mar.', 'abr.', 'maio', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.'];
+          const today = new Date();
+          citationEl.textContent = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
         }
 
         // Inicializa visuais
