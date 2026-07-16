@@ -750,12 +750,32 @@ function exibirNomesAbas() {
   
   const ws = ss.getSheetByName("Form_Responses");
   let headers = "";
+  let sample = "";
   if (ws && ws.getLastColumn() > 0) {
     const headerRow = ws.getRange(1, 1, 1, ws.getLastColumn()).getValues()[0];
     headers = "\n\n📋 Cabeçalhos de 'Form_Responses':\n" + 
               headerRow.map((h, i) => `   [${i}] ${h}`).join("\n");
+              
+    const cabecalho = headerRow.map(h => String(h || "").trim().toLowerCase());
+    const colIndex = {
+      TIMESTAMP:     cabecalho.findIndex(h => h.includes("carimbo") || h.includes("timestamp")),
+      TIPO_IES:      cabecalho.findIndex(h => h.includes("sua instituição") || h.includes("tipo")),
+      INSTITUICAO:   cabecalho.findIndex(h => h.includes("nome da sua") || h.includes("nome da institu")),
+      ESTADO:        cabecalho.findIndex(h => h === "estado" || h.includes("uf")),
+      BIBLIOTECAS:   cabecalho.findIndex(h => h.includes("bibliotecas digitais") || h.includes("bibliotecas assinadas")),
+      EMAIL_CONTATO: cabecalho.findIndex(h => h.includes("email") || h.includes("contato")),
+      SITE:          cabecalho.findIndex(h => h.includes("site") || h.includes("url")),
+    };
+    
+    headers += "\n\n🔍 Mapeamento Encontrado:\n" + JSON.stringify(colIndex, null, 2);
+    
+    if (ws.getLastRow() > 1) {
+      const firstRow = ws.getRange(2, 1, 1, ws.getLastColumn()).getValues()[0];
+      sample = "\n\n💡 Primeira linha de dados:\n" + 
+               firstRow.map((val, idx) => `   [${idx}] ${headerRow[idx]}: "${val}"`).join("\n");
+    }
   }
   
-  SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info + headers);
+  SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info + headers + sample);
 }
 
