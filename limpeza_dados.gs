@@ -108,21 +108,42 @@ function _executarLimpeza() {
   const todasLinhas = wsRespostas.getDataRange().getValues();
   if (todasLinhas.length <= 1) return { instituicoes: 0, assinaturas: 0, bibliotecas: 0 };
 
+  // Identificação dinâmica de índices de colunas com base no cabeçalho
+  const cabecalho = todasLinhas[0].map(h => String(h || "").trim().toLowerCase());
+  const colIndex = {
+    TIMESTAMP:     cabecalho.findIndex(h => h.includes("carimbo") || h.includes("timestamp")),
+    TIPO_IES:      cabecalho.findIndex(h => h.includes("sua instituição") || h.includes("tipo")),
+    INSTITUICAO:   cabecalho.findIndex(h => h.includes("nome da sua") || h.includes("nome da institu")),
+    ESTADO:        cabecalho.findIndex(h => h === "estado" || h.includes("uf")),
+    BIBLIOTECAS:   cabecalho.findIndex(h => h.includes("bibliotecas digitais") || h.includes("bibliotecas assinadas")),
+    EMAIL_CONTATO: cabecalho.findIndex(h => h.includes("email") || h.includes("contato")),
+    SITE:          cabecalho.findIndex(h => h.includes("site") || h.includes("url")),
+  };
+
+  // Fallbacks padrão caso não localize alguma palavra-chave
+  if (colIndex.TIMESTAMP === -1)     colIndex.TIMESTAMP = 0;
+  if (colIndex.TIPO_IES === -1)      colIndex.TIPO_IES = 1;
+  if (colIndex.INSTITUICAO === -1)   colIndex.INSTITUICAO = 2;
+  if (colIndex.ESTADO === -1)        colIndex.ESTADO = 3;
+  if (colIndex.BIBLIOTECAS === -1)   colIndex.BIBLIOTECAS = 4;
+  if (colIndex.EMAIL_CONTATO === -1) colIndex.EMAIL_CONTATO = 5;
+  if (colIndex.SITE === -1)          colIndex.SITE = 6;
+
   const linhasDados = todasLinhas.slice(1);
 
   // --- Deduplicar: mantém só a resposta mais recente por instituição ---
   const porInstituicao = {};
 
   for (const linha of linhasDados) {
-    const nomeRaw = String(linha[CONFIG.COL.INSTITUICAO] || "").trim();
+    const nomeRaw = String(linha[colIndex.INSTITUICAO] || "").trim();
     if (!nomeRaw) continue;
 
     const nomeNorm  = _normalizarNome(nomeRaw);
     const nomeAlias = _aplicarAlias(aliasesInst, nomeNorm);
     const chave     = nomeAlias.toLowerCase();
 
-    const ts = linha[CONFIG.COL.TIMESTAMP] instanceof Date
-      ? linha[CONFIG.COL.TIMESTAMP].getTime()
+    const ts = linha[colIndex.TIMESTAMP] instanceof Date
+      ? linha[colIndex.TIMESTAMP].getTime()
       : 0;
 
     if (!porInstituicao[chave] || ts > porInstituicao[chave].ts) {
@@ -141,17 +162,16 @@ function _executarLimpeza() {
 
   for (const reg of Object.values(porInstituicao)) {
     const { linha, nomeDisplay } = reg;
-    const C = CONFIG.COL;
 
-    const tipoIes      = _normalizarTipoIES(String(linha[C.TIPO_IES]      || ""));
-    const estadoRaw    = String(linha[C.ESTADO]        || "").trim();
+    const tipoIes      = _normalizarTipoIES(String(linha[colIndex.TIPO_IES]      || ""));
+    const estadoRaw    = String(linha[colIndex.ESTADO]        || "").trim();
     const estado       = _normalizarEstado(estadoRaw);
     const uf           = _extrairUF(estadoRaw);
-    const dataResp     = linha[C.TIMESTAMP] instanceof Date
-      ? Utilities.formatDate(linha[C.TIMESTAMP], CONFIG.TIMEZONE, "yyyy-MM-dd")
+    const dataResp     = linha[colIndex.TIMESTAMP] instanceof Date
+      ? Utilities.formatDate(linha[colIndex.TIMESTAMP], CONFIG.TIMEZONE, "yyyy-MM-dd")
       : "";
 
-    const bibliotecas = _parseBibliotecas(String(linha[C.BIBLIOTECAS] || ""), aliasesBiblio);
+    const bibliotecas = _parseBibliotecas(String(linha[colIndex.BIBLIOTECAS] || ""), aliasesBiblio);
 
     if (bibliotecas.length === 0) {
       linhasSaida.push([nomeDisplay, tipoIes, estado, uf, "", dataResp]);
