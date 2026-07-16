@@ -247,13 +247,42 @@ function _extrairUF(estado) {
 function _parseBibliotecas(campo, aliases) {
   if (!campo || campo === "None" || campo.trim() === "") return [];
   
-  // Divide o campo por ponto e vírgula, vírgula, " e " ou " and "
-  const partes = campo.split(/\s*(?:;|,|\s+e\s+|\s+and\s+)\s*/i);
+  // Cria um conjunto de nomes e variantes conhecidos para evitar quebrar nomes compostos padronizados
+  const conhecidos = new Set();
+  for (const key in aliases) {
+    conhecidos.add(key.toLowerCase().trim());
+    conhecidos.add(aliases[key].toLowerCase().trim());
+  }
   
-  return partes
-    .map(b => _normalizarNome(b))
-    .filter(b => b.length > 0)
-    .map(b => _aplicarAlias(aliases, b));
+  // Adiciona explicitamente o padrão comum "Taylor and Francis" (caso não esteja no alias)
+  conhecidos.add("taylor and francis");
+  conhecidos.add("taylor & francis");
+  
+  // Primeiro, divide pelo separador padrão do formulário (ponto e vírgula)
+  const partesOficiais = campo.split(";");
+  const resultado = [];
+  
+  for (let parte of partesOficiais) {
+    parte = _normalizarNome(parte);
+    if (!parte) continue;
+    
+    // Se a parte inteira já é um nome conhecido (ou variante cadastrada nos Aliases), não separa!
+    if (conhecidos.has(parte.toLowerCase())) {
+      resultado.push(_aplicarAlias(aliases, parte));
+    } else {
+      // Caso contrário (texto livre bagunçado), tenta separar por vírgula, " e " ou " and "
+      const subpartes = parte.split(/\s*(?:,|\s+e\s+|\s+and\s+)\s*/i);
+      for (const sub of subpartes) {
+        const subNorm = _normalizarNome(sub);
+        if (subNorm) {
+          resultado.push(_aplicarAlias(aliases, subNorm));
+        }
+      }
+    }
+  }
+  
+  // Remove itens vazios e duplicados
+  return resultado.filter((v, idx, self) => v && self.indexOf(v) === idx);
 }
 
 
