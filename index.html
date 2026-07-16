@@ -2249,9 +2249,9 @@
           onClick: (event, elements) => {
             const chart = chartRanking;
             const chartArea = chart.chartArea;
+            const scale = chart.scales.y;
             // Se clicou nas labels do eixo Y (à esquerda da área do gráfico)
-            if (event.x < chartArea.left) {
-              const scale = chart.scales.y;
+            if (event.x < chartArea.left && event.y >= scale.top && event.y <= scale.bottom) {
               const index = scale.getValueForPixel(event.y);
               if (index >= 0 && index < chart.data.labels.length) {
                 const libName = chart.data.labels[Math.round(index)];
@@ -2265,6 +2265,29 @@
               const libName = chart.data.labels[index];
               filterByLibrary(libName);
             }
+          },
+          onHover: (event, elements) => {
+            const chart = chartRanking;
+            const chartArea = chart.chartArea;
+            const scale = chart.scales.y;
+            
+            // Se está sobre a área das labels do eixo Y
+            if (event.x < chartArea.left && event.y >= scale.top && event.y <= scale.bottom) {
+              const index = scale.getValueForPixel(event.y);
+              if (index >= 0 && index < chart.data.labels.length) {
+                event.native.target.style.cursor = 'pointer';
+                return;
+              }
+            }
+            
+            // Se está sobre uma barra
+            if (elements.length > 0) {
+              event.native.target.style.cursor = 'pointer';
+              return;
+            }
+            
+            // Cursor padrão
+            event.native.target.style.cursor = 'default';
           },
           plugins: {
             legend: { display: false },
