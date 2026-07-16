@@ -412,6 +412,7 @@ function onOpen() {
     .addItem("🔗 Gerar links de atualização",      "gerarLinks")
     .addItem("🔤 Ordenar opções do Formulário",    "ordenarBibliotecasFormulario")
     .addItem("➕ Criar Formulário de Fornecedores", "criarFormularioFornecedores")
+    .addItem("🔄 Reimportar Dados Legados",         "reimportarDadosLegados")
     .addItem("🔍 Depurar: Listar Abas e Linhas",   "exibirNomesAbas")
     .addSeparator()
     .addItem("📋 Ver log de execuções",            "irParaLog")
@@ -433,7 +434,45 @@ function copiarDadosLegados() {
     return;
   }
   
-  const ignoreSheets = ["Form_Responses", "Dados Limpos", "Aliases Bibliotecas", "Aliases Instituições", "Log Limpeza"];
+  _executarCopiaDadosLegados(ss, targetSheet);
+}
+
+function reimportarDadosLegados() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const targetSheet = ss.getSheetByName("Form_Responses");
+  if (!targetSheet) {
+    SpreadsheetApp.getUi().alert("Aba 'Form_Responses' não encontrada.");
+    return;
+  }
+  
+  const ui = SpreadsheetApp.getUi();
+  const resposta = ui.alert(
+    "⚠️ Reimportar Dados Legados",
+    "Isso irá limpar a aba 'Form_Responses' e importar novamente os dados originais da aba 'Matriz' com a coluna de Bibliotecas preenchida.\n\nDeseja continuar?",
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (resposta !== ui.Button.YES) return;
+  
+  // Limpa os dados existentes na aba Form_Responses
+  if (targetSheet.getLastRow() > 1) {
+    targetSheet.getRange(2, 1, targetSheet.getLastRow() - 1, targetSheet.getLastColumn()).clearContent();
+  }
+  
+  _executarCopiaDadosLegados(ss, targetSheet);
+  
+  // Roda a limpeza para atualizar "Dados Limpos"
+  _executarLimpeza();
+  
+  ui.alert("✅ Dados legados reimportados e limpos com sucesso!");
+}
+
+function _executarCopiaDadosLegados(ss, targetSheet) {
+  const ignoreSheets = [
+    "Form_Responses", "Dados Limpos", "Aliases Bibliotecas", 
+    "Aliases Instituições", "Log Limpeza", "Matriz_tab", "TD_tab", 
+    "TD", "Planilha1", "Linhas excluídas Dados Anterios", "Categoria BD"
+  ];
   let originSheet = null;
   let maxRows = 0;
   
