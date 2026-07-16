@@ -777,10 +777,17 @@ function exibirNomesAbas() {
   }
 
   // Adiciona cabeçalhos das outras matrizes
-  const wsMatriz = ss.getSheetByName("Matriz_tab") || ss.getSheetByName("Matriz");
+  const wsMatrizTab = ss.getSheetByName("Matriz_tab");
+  if (wsMatrizTab) {
+    const matHeaders = wsMatrizTab.getRange(1, 1, 1, wsMatrizTab.getLastColumn()).getValues()[0];
+    sample += `\n\n📋 Cabeçalhos de 'Matriz_tab':\n` + 
+              matHeaders.map((h, i) => `   [${i}] ${h}`).join("\n");
+  }
+  
+  const wsMatriz = ss.getSheetByName("Matriz");
   if (wsMatriz) {
     const matHeaders = wsMatriz.getRange(1, 1, 1, wsMatriz.getLastColumn()).getValues()[0];
-    sample += `\n\n📋 Cabeçalhos de '${wsMatriz.getName()}':\n` + 
+    sample += `\n\n📋 Cabeçalhos de 'Matriz':\n` + 
               matHeaders.map((h, i) => `   [${i}] ${h}`).join("\n");
   }
   
