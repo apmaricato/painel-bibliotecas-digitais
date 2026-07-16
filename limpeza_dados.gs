@@ -496,10 +496,24 @@ function _executarCopiaDadosLegados(ss, targetSheet) {
   const originHeader = originData[0];
   const targetHeader = targetSheet.getRange(1, 1, 1, targetSheet.getLastColumn()).getValues()[0];
   
-  // Mapeia os índices das colunas por nome de cabeçalho
+  // Mapeia os índices das colunas por nome de cabeçalho (com fallbacks inteligentes)
   const colMap = {};
   targetHeader.forEach((title, idx) => {
-    colMap[idx] = originHeader.indexOf(title);
+    let originIdx = originHeader.indexOf(title);
+    
+    // Fallback para Carimbo de data/hora (Timestamp)
+    if (originIdx === -1 && title === "Carimbo de data/hora") {
+      originIdx = originHeader.indexOf("Hora de conclusão");
+      if (originIdx === -1) originIdx = originHeader.indexOf("Hora de início");
+      if (originIdx === -1) originIdx = originHeader.indexOf("Timestamp");
+    }
+    
+    // Fallback para Autorização do E-mail (por conta de diferença de digitação no cabeçalho antigo)
+    if (originIdx === -1 && title === "Autoriza compartilhar seu e-mail?") {
+      originIdx = originHeader.indexOf("Autoriza compartilhar seu e-email?");
+    }
+    
+    colMap[idx] = originIdx;
   });
   
   const newRows = [];
