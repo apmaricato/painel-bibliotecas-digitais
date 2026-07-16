@@ -775,6 +775,14 @@ function exibirNomesAbas() {
                firstRow.map((val, idx) => `   [${idx}] ${headerRow[idx]}: "${val}"`).join("\n");
     }
   }
+
+  // Adiciona cabeçalhos das outras matrizes
+  const wsMatriz = ss.getSheetByName("Matriz_tab") || ss.getSheetByName("Matriz");
+  if (wsMatriz) {
+    const matHeaders = wsMatriz.getRange(1, 1, 1, wsMatriz.getLastColumn()).getValues()[0];
+    sample += `\n\n📋 Cabeçalhos de '${wsMatriz.getName()}':\n` + 
+              matHeaders.map((h, i) => `   [${i}] ${h}`).join("\n");
+  }
   
   SpreadsheetApp.getUi().alert("Abas encontradas na planilha:\n\n" + info + headers + sample);
 }
